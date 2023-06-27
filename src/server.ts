@@ -8,7 +8,6 @@ import cookieParser from 'cookie-parser';
 import path from 'node:path';
 import fs from 'node:fs';
 
-import { allowCrossDomain } from './middleware/allowCrossDomain';
 import { ensureAuthenticated } from './middleware/ensureAuthenticated';
 
 import { AppError } from './errors/AppError';
@@ -24,7 +23,7 @@ app.use(
 app.use(cookieParser());
 app.use(express.json());
 
-app.post('/login', allowCrossDomain, (request, response) => {
+app.post('/login', (request, response) => {
   const { password } = request.body;
   if (!password) throw new AppError('Password not provided', 401);
 
@@ -40,7 +39,7 @@ app.post('/login', allowCrossDomain, (request, response) => {
   throw new AppError('Senha inválida', 401);
 });
 
-app.post('/checkSession', allowCrossDomain, (request, response) => {
+app.post('/checkSession', (request, response) => {
   const { token } = request.cookies;
   if (token === undefined || token.length === 0)
     return response.status(401).send();
@@ -48,14 +47,14 @@ app.post('/checkSession', allowCrossDomain, (request, response) => {
   return response.status(200).send();
 });
 
-app.post('/logout', allowCrossDomain, (request, response) => {
+app.post('/logout', (request, response) => {
   return response
     .cookie('token', '', { maxAge: 0, httpOnly: true })
     .status(200)
     .send();
 });
 
-app.get('/', allowCrossDomain, ensureAuthenticated, (request, response) => {
+app.get('/', ensureAuthenticated, (request, response) => {
   const videosFolderPath = path.resolve(__dirname, '..', 'files');
   const videosFileMap = fs.readdirSync(videosFolderPath);
 
