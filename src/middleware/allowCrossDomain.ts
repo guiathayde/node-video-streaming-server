@@ -7,9 +7,7 @@ export function allowCrossDomain(
 ) {
   response.header(
     'Access-Control-Allow-Origin',
-    process.env.NODE_ENV === 'dev'
-      ? `http://localhost:5173`
-      : process.env.FRONT_URL
+    process.env.NODE_ENV === 'prod' ? 'video.guiathayde.dev' : 'localhost:5173'
   );
   response.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
   response.header('Access-Control-Allow-Headers', 'Content-Type');

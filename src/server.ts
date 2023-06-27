@@ -17,10 +17,7 @@ const app = express();
 
 app.use(
   cors({
-    origin: [
-      'http://localhost:5173',
-      process.env.FRONT_URL ?? 'https://video.guiathayde.dev',
-    ],
+    origin: ['http://localhost:5173', 'https://video.guiathayde.dev'],
     credentials: true,
   })
 );
