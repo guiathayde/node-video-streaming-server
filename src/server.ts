@@ -62,12 +62,16 @@ app.get('/', allowCrossDomain, ensureAuthenticated, (request, response) => {
   const videosFolderPath = path.resolve(__dirname, '..', 'files');
   const videosFileMap = fs.readdirSync(videosFolderPath);
 
-  return response.json(videosFileMap);
+  return response.json(
+    videosFileMap.filter((videoName) => videoName != '.gitkeep')
+  );
 });
 
 app.get('/:fileName', ensureAuthenticated, (request, response) => {
   const videosFolderPath = path.resolve(__dirname, '..', 'files');
-  const videosFileMap = fs.readdirSync(videosFolderPath);
+  const videosFileMap = fs
+    .readdirSync(videosFolderPath)
+    .filter((videoName) => videoName != '.gitkeep');
 
   const { fileName } = request.params;
   if (!videosFileMap.includes(fileName))

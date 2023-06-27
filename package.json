@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "tsx watch src/server.ts",
-    "build": "tsc"
+    "dev": "NODE_ENV=dev tsx watch src/server.ts",
+    "build": "NODE_ENV=prod tsc"
   },
   "keywords": [],
   "author": "",
