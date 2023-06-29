@@ -7,6 +7,7 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import path from 'node:path';
 import fs from 'node:fs';
+import ffmpeg from 'fluent-ffmpeg';
 
 import { ensureAuthenticated } from './middleware/ensureAuthenticated';
 
@@ -22,6 +23,11 @@ app.use(
 );
 app.use(cookieParser());
 app.use(express.json());
+app.use(
+  '/thumbs',
+  ensureAuthenticated,
+  express.static(path.resolve(__dirname, '..', 'thumbs'))
+);
 
 app.post('/login', (request, response) => {
   const { password } = request.body;
@@ -54,13 +60,54 @@ app.post('/logout', (request, response) => {
     .send();
 });
 
+app.get('/thumb', ensureAuthenticated, async (request, response) => {
+  const thumbsFolderPath = path.resolve(__dirname, '..', 'thumbs');
+  const thumbsFileMap = fs.readdirSync(thumbsFolderPath);
+  for (const thumb of thumbsFileMap) {
+    if (thumb.endsWith('.png')) {
+      const thumbPath = path.resolve(thumbsFolderPath, thumb);
+
+      fs.unlinkSync(thumbPath);
+    }
+  }
+
+  const videosFolderPath = path.resolve(__dirname, '..', 'files');
+  const videosFileMap = fs
+    .readdirSync(videosFolderPath)
+    .filter((videoName) => /\.mp4$/.test(videoName));
+
+  const screenshotsTaken: string[] = [];
+  for (const videoName of videosFileMap) {
+    await new Promise<void>((resolve, reject) => {
+      ffmpeg(path.resolve(videosFolderPath, videoName))
+        .on('end', () => {
+          console.log(`Screenshots taken from ${videoName}`);
+          screenshotsTaken.push(videoName);
+          resolve();
+        })
+        .on('error', (error) => {
+          console.error(`Error in scrreenshot from ${videoName}`, error);
+          return reject(error);
+        })
+        .screenshots({
+          timemarks: ['50%'],
+          filename: `${videoName.replace('.mp4', '')}.png`,
+          folder: path.resolve(__dirname, '..', 'thumbs'),
+          size: '320x240',
+        });
+    });
+  }
+
+  return response.json(screenshotsTaken);
+});
+
 app.get('/', ensureAuthenticated, (request, response) => {
   const videosFolderPath = path.resolve(__dirname, '..', 'files');
-  const videosFileMap = fs.readdirSync(videosFolderPath);
+  const videosFileMap = fs
+    .readdirSync(videosFolderPath)
+    .filter((thumbName) => /\.mp4$/.test(thumbName));
 
-  return response.json(
-    videosFileMap.filter((videoName) => videoName != '.gitkeep')
-  );
+  return response.json(videosFileMap);
 });
 
 app.get('/:fileName', ensureAuthenticated, (request, response) => {

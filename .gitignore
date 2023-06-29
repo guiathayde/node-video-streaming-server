@@ -5,3 +5,5 @@ dist
 
 files/*
 !files/.gitkeep
+thumbs/*
+!thumbs/.gitkeep
